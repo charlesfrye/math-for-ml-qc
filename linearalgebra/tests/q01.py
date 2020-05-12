@@ -6,6 +6,7 @@ test = {
             "cases": [
                 {
                     "code": r"""
+                    >>> # TESTS BEGIN HERE
                     >>> ## you must define a function called dot
                     >>> callable(dot)
                     True
