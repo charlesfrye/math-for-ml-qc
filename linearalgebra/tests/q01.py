@@ -6,6 +6,9 @@ test = {
             "cases": [
                 {
                     "code": r"""
+                    >>> ## you must define a function called dot
+                    >>> callable(dot)
+                    True
                     >>> ## all-zeros vector should always return 0
                     >>> int(dot(all_zeros, all_zeros))
                     0
@@ -17,6 +20,7 @@ test = {
                     15
                     >>> ## sum needs to also work on a random vector
                     >>> np.isclose(sum(random_vector), dot(random_vector, all_ones))
+                    True
                     >>> ## and we should get same answer as numpy in general
                     >>> np.isclose(np.dot(random_vector, second_random_vector),
                     >>>    dot(random_vector, second_random_vector))
