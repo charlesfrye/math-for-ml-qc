@@ -10,8 +10,8 @@ test = {
                     >>> True
                     True
                     >>> ## autopass
-                    >>> isinstance(conch_st_residents, list)
-                    True
+                    >>> print("hello")
+                    hello
                     """,
                     "hidden": False,
                     "locked": False
