@@ -185,16 +185,17 @@ def setup_plot(T, mesh_properties=unit_square_mesh, square_axes=False,
 
     offsets = precompute_animation(T, scatter, f,
                                    mesh_properties)
+    n_frames = len(offsets)
 
     def animate(ii):
         scatter.set_offsets(offsets[ii])
 
-    return scatter, f, ax, animate
+    return f, ax, animate, n_frames
 
 
 def precompute_animation(T, scatter, figure,
                          mesh_properties=unit_square_mesh,
-                         delta_t=0.05):
+                         delta_t=0.01):
 
     T = np.asarray(T)
 
