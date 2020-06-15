@@ -1,5 +1,5 @@
 test = {
-    "name": "Dot Product Example",
+    "name": "Dimensions",
     "points": 1,
     "suites": [
         {
@@ -7,36 +7,28 @@ test = {
                 {
                     "code": r"""
                     >>> # TESTS BEGIN HERE
-                    >>> ## you must define a function called dot
-                    >>> callable(dot)
+                    >>> ## you must define a dictionary called dimensions
+                    >>> type(dimensions)
+                    dict
+                    >>> ## A is a vector, neither row nor column
+                    >>> dimensions["A"]
+                    1
+                    >>> ## B and D are both vectors
+                    >>> dimensions["B"] == dimensions["D"]
                     True
-                    >>> ## all-zeros vector should always return 0
-                    >>> int(dot(all_zeros, all_zeros))
-                    0
-                    >>> int(dot(all_zeros, random_vector))
-                    0
-                    >>> ## dot product with all-ones vector is sum
-                    >>> ## sum of numbers up to 5 is 15
-                    >>> int(dot(range_vector, all_ones))
-                    15
-                    >>> ## sum needs to also work on a random vector
-                    >>> np.isclose(sum(random_vector), dot(random_vector, all_ones))
-                    True
-                    >>> ## and we should get same answer as numpy in general
-                    >>> np.isclose(np.dot(random_vector, second_random_vector), dot(random_vector, second_random_vector))
-                    True
+                    >>> ## B/D are explicitly row/column vectors
+                    >>> ## so they have two dimensions
+                    >>> dimensions["B"]
+                    2
+                    >>> ## C is a matrix, so it has two dimensions
+                    >>> dimensions["C"]
+                    2
                     """,
                     "hidden": False,
                     "locked": False
                 }
             ],
             "setup": r"""
-            shape = 5
-            range_vector = np.array([1, 2, 3, 4, 5])
-            all_zeros = np.zeros(shape)
-            all_ones = np.ones(shape)
-            random_vector = np.random.randn(shape)
-            second_random_vector = np.random.randn(shape)
             """,
             "teardown": r"""
             """,
