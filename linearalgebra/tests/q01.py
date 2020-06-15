@@ -9,7 +9,7 @@ test = {
                     >>> # TESTS BEGIN HERE
                     >>> ## you must define a dictionary called dimensions
                     >>> type(dimensions)
-                    dict
+                    <class 'dict'>
                     >>> ## A is a vector, neither row nor column
                     >>> dimensions["A"]
                     1
