@@ -16,7 +16,7 @@ test = {
                     >>> np.allclose(normalize(all_ones), 1 / np.sqrt(shape))
                     True
                     >>> ## and now on a random vector
-                    >>> int(np.round(normalize(random_vector)))
+                    >>> int(np.round(np.linalg.norm(normalize(random_vector))))
                     1
                     """,
                     "hidden": False,
