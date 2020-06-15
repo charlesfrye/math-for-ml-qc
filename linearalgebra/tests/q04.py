@@ -14,7 +14,7 @@ test = {
                     >>> np.array_equal(WXYZ @ random_vec, V @ random_vec)
                     False
                     >>> ## result from their pipeline and yours should be (almost) same
-                    >>> np.array_close(their_pipeline(random_vec), V @ random_vec)
+                    >>> np.allclose(their_pipeline(random_vec), V @ random_vec)
                     True
                     """,
                     "hidden": False,
