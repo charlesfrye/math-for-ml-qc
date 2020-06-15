@@ -11,12 +11,12 @@ test = {
                     >>> callable(normalize)
                     True
                     >>> ## testing on all_ones vector first
-                    >>> int(np.linalg.norm(normalize(all_ones)))
+                    >>> int(np.round(np.linalg.norm(normalize(all_ones))))
                     1
                     >>> np.allclose(normalize(all_ones), 1 / np.sqrt(shape))
                     True
                     >>> ## and now on a random vector
-                    >>> int(np.linalg.norm(random_vector))
+                    >>> int(np.round(np.linalg.norm(random_vector)))
                     1
                     """,
                     "hidden": False,

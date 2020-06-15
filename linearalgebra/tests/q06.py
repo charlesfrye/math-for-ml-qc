@@ -11,10 +11,10 @@ test = {
                     >>> callable(norm)
                     True
                     >>> ## all-zeros vector has norm 0
-                    >>> int(norm(all_zeros))
+                    >>> int(np.round(norm(all_zeros)))
                     0
                     >>> ## vector with one 1 has norm 1
-                    >>> int(norm(one_hot))
+                    >>> int(np.round(norm(one_hot)))
                     1
                     >>> ## all ones vector of length n
                     >>> ## has norm sqrt(n)

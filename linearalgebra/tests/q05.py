@@ -17,7 +17,7 @@ test = {
                     0
                     >>> ## dot product with all-ones vector is sum
                     >>> ## sum of numbers up to 5 is 15
-                    >>> int(dot(range_vector, all_ones))
+                    >>> int(np.round(dot(range_vector, all_ones)))
                     15
                     >>> ## sum needs to also work on a random vector
                     >>> np.isclose(sum(random_vector), dot(random_vector, all_ones))
