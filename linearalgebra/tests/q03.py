@@ -12,7 +12,7 @@ test = {
                     True
                     >>> ## shape is reversed shape of input matrix
                     >>> shape_of_transpose(random_matrix) == transposed_shape
-                    True
+                    array([ True,  True])
                     """,
                     "hidden": False,
                     "locked": False
