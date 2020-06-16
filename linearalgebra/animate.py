@@ -1,6 +1,18 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+unit_square_mesh = {'delta': 0.1,
+                    'x_min': 0,
+                    'x_max': 1,
+                    'y_min': 0,
+                    'y_max': 1}
+
+foursquare_mesh = {'delta': 0.1,
+                   'x_min': -0.5,
+                   'x_max': 0.5,
+                   'y_min': -0.5,
+                   'y_max': 0.5}
+
 
 def make_mesh(mesh_props):
     num_dimensions = 2
@@ -117,19 +129,6 @@ def make_rotation(theta):
     rotation_matrix = [[np.cos(theta), -np.sin(theta)],
                        [np.sin(theta), np.cos(theta)]]
     return np.asarray(rotation_matrix)
-
-
-unit_square_mesh = {'delta': 0.1,
-                    'x_min': 0,
-                    'x_max': 1,
-                    'y_min': 0,
-                    'y_max': 1}
-
-foursquare_mesh = {'delta': 0.1,
-                   'x_min': -0.5,
-                   'x_max': 0.5,
-                   'y_min': -0.5,
-                   'y_max': 0.5}
 
 
 def setup_plot(T, mesh_properties=unit_square_mesh, square_axes=False,
