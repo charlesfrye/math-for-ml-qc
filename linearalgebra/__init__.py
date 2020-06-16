@@ -1,3 +1,3 @@
-import animate
+from . import animate
 
 __all__ = ["animate"]
