@@ -8,10 +8,14 @@ unit_square_mesh = {'delta': 0.1,
                     'y_max': 1}
 
 all_quadrants_mesh = {'delta': 0.1,
-                      'x_min': -0.5,
-                      'x_max': 0.5,
-                      'y_min': -0.5,
-                      'y_max': 0.5}
+                      'x_min': -1,
+                      'x_max': 1,
+                      'y_min': -1,
+                      'y_max': 1}
+
+COLOR_EIGVEC = "#003262"
+COLOR_BASIS = "#FDB515"
+CMAP_MESH = matplotlib.colors.ListedColormap(np.array([1., 1., 1., 1.]))
 
 
 def setup_plot(T, mesh_properties=unit_square_mesh, square_axes=False,
@@ -109,7 +113,7 @@ def plot_mesh(ax, xs, ys, colors):
                    alpha=0.7, edgecolor='none',
                    s=36, linewidth=2,
                    zorder=6,
-                   c=colors, cmap='hot')
+                   c=colors, cmap=CMAP_MESH)
 
     return h
 
@@ -124,10 +128,11 @@ def plot_interesting_vectors(T, ax, columns=False, eigs=True):
     labels = []
 
     if columns:
-        arrows += [plot_vector(column, ax, 'hotpink')
+        arrows += [plot_vector(column, ax, COLOR_BASIS)
                    for column in T.T]
         arrows = [arrows[0]]
         labels += ["a basis vector lands here"]
+
     if eigs:
         eigenvalues, eigenvectors = np.linalg.eig(T)
         eigen_list = [(eigenvalue, eigenvector) for eigenvalue, eigenvector
@@ -137,13 +142,14 @@ def plot_interesting_vectors(T, ax, columns=False, eigs=True):
                       ]
         if eigen_list:
             eigen_arrows = [
-                    plot_vector(np.real(element[1]), ax, '#53fca1', label='special vectors')
+                    plot_vector(np.real(element[1]), ax, COLOR_EIGVEC, label='special vectors')
                     for element in eigen_list]
             eigen_arrows = [eigen_arrows[0]]
             labels += ["this is a special (aka eigen) vector"]
             arrows += eigen_arrows
         else:
             print("eigenvalues are all nonreal or 0")
+
     ax.legend(arrows, labels, loc=[0, 0.5],
               bbox_to_anchor=(0, 1.01),
               ncol=1, prop={'weight': 'bold'})
