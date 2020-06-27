@@ -1,7 +1,7 @@
 # Math for Machine Learning - Weights & Biases X Qualcomm
 
 This short course introduces the core concepts and intuitions
-of the three most important branches of mathetmatics
+of the three most important branches of mathematics
 for machine learning:
 linear algebra,
 calculus,
