@@ -1,4 +1,4 @@
-# Math for Machine Learning - Weights & Biases X Qualcomm
+# Math for Machine Learning - W&B X Qualcomm
 
 This short course introduces the core concepts and intuitions
 of the three most important branches of mathematics
