@@ -18,39 +18,33 @@ COLOR_BASIS = "#FDB515"
 CMAP_MESH = matplotlib.colors.ListedColormap(np.array([1., 1., 1., 1.]))
 
 
-def setup_plot(T, mesh_properties=unit_square_mesh, square_axes=False,
-               plot_columns=False, plot_eigenvectors=False):
+def setup_plot(T, mesh_properties=unit_square_mesh,
+               animate_basis=False):
     """
     Setup the plot and axes for animating a linear transformation T.
 
-    If asked, plot the columns (aka the images of the basis vectors)
-    and the eigenvectors (but only if the eigvals are real and non-zero).
+    If asked, animate the basis vectors as arrows.
 
     Parameters
     ----------
-    T        : 2x2 matrix representing a linear transformation
-    mesh_properties : dictionary that defines properties of meshgrid of points
-                        that will be plotted and transformed.
-                        needs to have the following five properties:
-                        'delta' - mesh spacing
-                        '{x,y}{Min,Max}' - minium/maximum value on x/y axis
-    square_axes : if False, size the axes so that they contain starting
-                    and ending location of each point in grid.
-                 if True, size the axes so that they are square and contain
-                    starting and ending location of each point in mesh.
-    plot_columns : if True, plot the columns of the transformation so that we can see
-                        where the basis vectors end up
-    plot_eigenvectors: if true, plot the eigenvectors of the transformation
+    T                : 2x2 matrix representing a linear transformation
+    mesh_properties  : dictionary that defines properties of meshgrid of points
+                       that will be plotted and transformed.
+                       needs to have five keys:
+                         'delta' - mesh spacing
+                         '{x,y}_{min,max}' - minium/maximum value on x/y axis
+    animate_basis    : if True, animate the basis vectors
 
     Returns
     -------
     returns are meant to be consumed by animate_transformation
 
-    scatter   : a PathCollection with all of the points in the meshgrid
-    f         : matplotlib figure containing axes
+    fig       : matplotlib figure containing axes
     ax        : matplotlib axes containing scatter
     animate   : callable for use with matplotlib.FuncAnimation
+    n_frames  : integer number of frames
     """
+    global basis_vecs  # hack to get around arrows not being animatable
     T = np.asarray(T)
 
     xs, ys = make_mesh(mesh_properties)
@@ -59,33 +53,27 @@ def setup_plot(T, mesh_properties=unit_square_mesh, square_axes=False,
     with matplotlib.style.context("dark_background"):
         fig = matplotlib.figure.Figure(figsize=(6, 6))
         ax = fig.add_subplot(111)
-        ax.set_aspect('equal')
 
     scatter = plot_mesh(ax, xs, ys, colors)
 
-    plot_vectors = [plot_columns, plot_eigenvectors]
+    start, end, _ = compute_trajectories(T, scatter)
 
-    not_zeros = not(np.all(T == np.zeros(2)))
-
-    if (any(plot_vectors) & not_zeros):
-        plot_interesting_vectors(T, ax, *plot_vectors)
-
-    start, end, delta = compute_trajectories(T, scatter)
+    basis_vecs = setup_basis(animate_basis, ax)
 
     mn, mx = calculate_axis_bounds(start, end)
-
-    if square_axes:
-        lim = max(abs(mn), abs(mx))
-        mn, mx = -lim, lim
+    lim = max(abs(mn), abs(mx))
+    mn, mx = -lim, lim
 
     draw_coordinate_axes(mn, mx, ax=ax)
     set_axes_lims(mn, mx, ax=ax)
 
-    offsets = precompute_animation(T, scatter)
-    n_frames = len(offsets)
+    scatter_offsets, arrow_positions = precompute_animation(T, scatter, animate_basis)
+    n_frames = len(scatter_offsets)
 
     def animate(ii):
-        scatter.set_offsets(offsets[ii])
+        global basis_vecs
+        scatter.set_offsets(scatter_offsets[ii])
+        basis_vecs = update_basis(basis_vecs, arrow_positions, ii, ax)
 
     return fig, ax, animate, n_frames
 
@@ -116,44 +104,6 @@ def plot_mesh(ax, xs, ys, colors):
                    c=colors, cmap=CMAP_MESH)
 
     return h
-
-
-def plot_vector(v, ax, color, label=None):
-    return ax.arrow(0, 0, v[0], v[1], zorder=5,
-                    linewidth=6, color=color, head_width=0.1, label=label)
-
-
-def plot_interesting_vectors(T, ax, columns=False, eigs=True):
-    arrows = []
-    labels = []
-
-    if columns:
-        arrows += [plot_vector(column, ax, COLOR_BASIS)
-                   for column in T.T]
-        arrows = [arrows[0]]
-        labels += ["a basis vector lands here"]
-
-    if eigs:
-        eigenvalues, eigenvectors = np.linalg.eig(T)
-        eigen_list = [(eigenvalue, eigenvector) for eigenvalue, eigenvector
-                      in zip(eigenvalues, eigenvectors.T)
-                      if eigenvalue != 0
-                      and not(np.iscomplex(eigenvalue))
-                      ]
-        if eigen_list:
-            eigen_arrows = [
-                    plot_vector(np.real(element[1]), ax, COLOR_EIGVEC, label='special vectors')
-                    for element in eigen_list]
-            eigen_arrows = [eigen_arrows[0]]
-            labels += ["this is a special (aka eigen) vector"]
-            arrows += eigen_arrows
-        else:
-            print("eigenvalues are all nonreal or 0")
-
-    ax.legend(arrows, labels, loc=[0, 0.5],
-              bbox_to_anchor=(0, 1.01),
-              ncol=1, prop={'weight': 'bold'})
-    return
 
 
 def compute_trajectories(T, scatter):
@@ -195,13 +145,38 @@ def draw_coordinate_axes(mn, mx, ax):
     return
 
 
+def setup_basis(animate_basis, ax):
+    if not animate_basis:
+        return None
+    else:
+        basis1 = plot_vector([1, 0], ax, color=COLOR_BASIS, label="basis vector")
+        basis2 = plot_vector([0, 1], ax, color=COLOR_BASIS, label="basis vector")
+        return [basis1, basis2]
+
+
+def update_basis(basis_vecs, arrow_positions, index, ax):
+    if basis_vecs is None:
+        return None
+    else:
+        [vec.remove() for vec in basis_vecs]
+        positions = arrow_positions[index]
+        basis1 = plot_vector(positions[0], ax, color=COLOR_BASIS, label="basis vector")
+        basis2 = plot_vector(positions[1], ax, color=COLOR_BASIS, label="basis vector")
+        return [basis1, basis2]
+
+
+def plot_vector(v, ax, color, label=None):
+    return ax.arrow(0, 0, v[0], v[1], zorder=5,
+                    linewidth=6, color=color, head_width=0.1, label=label)
+
+
 def make_rotation(theta):
     rotation_matrix = [[np.cos(theta), -np.sin(theta)],
                        [np.sin(theta), np.cos(theta)]]
     return np.asarray(rotation_matrix)
 
 
-def precompute_animation(T, scatter, delta_t=0.01):
+def precompute_animation(T, scatter, animate_basis=False, delta_t=0.01):
 
     T = np.asarray(T)
 
@@ -214,6 +189,7 @@ def precompute_animation(T, scatter, delta_t=0.01):
     not_zeros = not(np.all(T == np.zeros(2)))
 
     offsets = [scatter.get_offsets()]
+    arrow_positions = [[[1, 0], [0, 1]]]  # == Id.T
 
     if ((T[0, 0] == T[1, 1]) & (T[0, 1] == -1 * T[1, 0])) & \
             not_zeros:
@@ -225,10 +201,13 @@ def precompute_animation(T, scatter, delta_t=0.01):
         for idx, t in enumerate(ts):
             dT_toN = np.linalg.matrix_power(dT, idx+1)
             offsets.append(np.dot(dT_toN, start.T).T)
+            arrow_positions.append(np.dot(dT_toN, Id).T)
 
     else:
         for idx, t in enumerate(ts):
             offsets.append(t * (np.dot(T, start.T).T) +
                            (1 - t) * np.dot(Id, start.T).T)
+            arrow_positions.append((t * T +
+                                   (1 - t) * Id).T)
 
-    return offsets
+    return offsets, arrow_positions
