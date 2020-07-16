@@ -57,8 +57,8 @@ Open a browser window and navigate to
 ```
 localhost:8888
 ```
-and enter, as the password, the token that appears in the terminal after
-`?token` in the URLs printed by Jupyter.
+and enter, as the password, the token that appears after
+`?token` in the URLs printed to the terminal by Jupyter.
 
 ## Local Install -- pip/virtualenv
 
