@@ -11,11 +11,12 @@ These notebooks are supplementary to
 a lecture series (not included)
 and presume proficiency with Python.
 
-They are intended for use in one of three ways.
+Outside of official offerings of the course,
+they are intended for use in one of three ways.
 
 ## Binder - One-Click Version
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/charlesfrye/math-for-ml-qc/binder)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/charlesfrye/math-for-ml-qc/master)
 
 If you click the badge above,
 you'll launch a free cloud server
@@ -56,8 +57,8 @@ Open a browser window and navigate to
 ```
 localhost:8888
 ```
-and enter, as the password, the token that appears in the terminal after
-`?token` in the URLs printed by Jupyter.
+and enter, as the password, the token that appears after
+`?token` in the URLs printed to the terminal by Jupyter.
 
 ## Local Install -- pip/virtualenv
 
