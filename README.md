@@ -11,11 +11,12 @@ These notebooks are supplementary to
 a lecture series (not included)
 and presume proficiency with Python.
 
-They are intended for use in one of three ways.
+Outside of official offerings of the course,
+they are intended for use in one of three ways.
 
 ## Binder - One-Click Version
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/charlesfrye/math-for-ml-qc/binder)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/charlesfrye/math-for-ml-qc/master)
 
 If you click the badge above,
 you'll launch a free cloud server
