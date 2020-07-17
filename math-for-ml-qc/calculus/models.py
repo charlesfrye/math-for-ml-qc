@@ -43,10 +43,10 @@ class Model(object):
         self.ax = plt.subplot(111)
         self.artist, = plt.plot(self.input_values,
                                 self.outputs,
-                               linewidth=4)
+                                linewidth=4)
         self.plotted = True
-        self.ax.set_ylim([-10,10])
-        self.ax.set_xlim([-10,10])
+        self.ax.set_ylim([-10, 10])
+        self.ax.set_xlim([-10, 10])
 
     def make_interactive(self):
         """called in a cell after Model.plot()
@@ -78,7 +78,7 @@ class Model(object):
             self.data_scatter.set_offsets(_offsets)
         else:
             self.data_scatter = self.ax.scatter(xs, ys,
-                                               color='k',alpha=0.5,s=72)
+                                                color='k', alpha=0.5, s=72)
             self.has_data = True
 
     def compute_MSE(self):
@@ -89,6 +89,7 @@ class Model(object):
         MSE = np.mean(squared_errors)
         return MSE
 
+
 class LinearModel(Model):
     """A linear model is a model whose transform is
     the dot product of its parameters with its inputs.
@@ -97,19 +98,20 @@ class LinearModel(Model):
 
     def __init__(self, input_values, parameters, model_inputs=None):
 
-        if model_inputs == None:
+        if model_inputs is None:
             model_inputs = self.transform_inputs(input_values)
         else:
             model_inputs = model_inputs
 
         def funk(inputs):
-            return np.dot(self.parameters.values,inputs)
+            return np.dot(self.parameters.values, inputs)
 
         Model.__init__(self, input_values, model_inputs, parameters, funk)
 
     def transform_inputs(self, input_values):
         model_inputs = [[1]*input_values.shape[0], input_values]
         return model_inputs
+
 
 class LinearizedModel(LinearModel):
     """A linearized model is a linear model applied to
@@ -118,7 +120,7 @@ class LinearizedModel(LinearModel):
 
     def __init__(self, transforms, input_values, parameters):
 
-        self.transforms = [lambda x: np.power(x,0),
+        self.transforms = [lambda x: np.power(x, 0),
                            lambda x: x] + transforms
 
         model_inputs = self.transform_inputs(input_values)
@@ -132,6 +134,7 @@ class LinearizedModel(LinearModel):
             transformed_inputs.append(transform(input_values))
 
         return transformed_inputs
+
 
 class NonlinearModel(Model):
     """A nonlinear model is a model whose outputs
@@ -148,13 +151,15 @@ class NonlinearModel(Model):
     def transform_inputs(self, input_values):
         return input_values
 
+
 class Parameters(object):
     """Tracks and updates parameter values and metadata, like range and identity,
     for parameters of a model. Interfaces with widget-making tools
     via the Model class to make interactive widgets for Model plots."""
 
     def __init__(self, defaults, ranges, names=None):
-        assert len(defaults) == len(ranges), "must have default and range for each parameter"
+        assert len(defaults) == len(ranges), \
+               "must have default and range for each parameter"
 
         self.values = np.atleast_2d(defaults)
 
@@ -162,7 +167,7 @@ class Parameters(object):
 
         self._zip = zip(defaults, ranges)
 
-        if names == None:
+        if names is None:
             self.names = ['parameter_'+str(idx) for idx in range(self.num)]
         else:
             self.names = names
@@ -173,7 +178,7 @@ class Parameters(object):
         #     values_for_dict = self.values
 
         self.dict = dict(zip(self.names, self.values))
-        #self.dict = dict(zip(self.names,np.squeeze(self.values)))
+        # self.dict = dict(zip(self.names,np.squeeze(self.values)))
 
         self.defaults = defaults
         self.ranges = ranges
@@ -181,24 +186,24 @@ class Parameters(object):
         self.make_widgets()
 
     def make_widgets(self):
-        self._widgets = [self.make_widget(parameter,idx)
-                        for idx,parameter
-                        in enumerate(self._zip)]
+        self._widgets = [self.make_widget(parameter, idx)
+                         for idx, parameter
+                         in enumerate(self._zip)]
 
-        self.widgets = {self.names[idx]:_widget
-                        for idx,_widget
-                       in enumerate(self._widgets)}
+        self.widgets = {self.names[idx]: _widget
+                        for idx, _widget
+                        in enumerate(self._widgets)}
 
-    def make_widget(self,parameter,idx):
+    def make_widget(self, parameter, idx):
         default = parameter[0]
         range = parameter[1]
         name = self.names[idx]
         return widgets.FloatSlider(value=default,
-                                    min= range[0],
-                                   max = range[1],
-                                   step = 0.01,
+                                   min=range[0],
+                                   max=range[1],
+                                   step=0.01,
                                    description=name
-                                    )
+                                   )
 
     def update(self):
         sorted_keys = sorted(self.dict.keys())
@@ -208,141 +213,163 @@ class Parameters(object):
 # Helper Functions
 ###
 
+
 def make_default_parameters(number, rnge=1, names=None):
     defaults = [0]*number
-    ranges = [[-rnge,rnge]]*number
+    ranges = [[-rnge, rnge]]*number
     return Parameters(defaults, ranges, names)
 
+
 def make_sine_parameters(degree):
-    defaults = [(-1)**(n//2)/math.factorial(n)
-                if n%2 != 0
+    defaults = [(-1) ** (n//2) / math.factorial(n)
+                if n % 2 != 0
                 else 0
                 for n in range(degree+1)]
-    ranges = [[-1,1]]*(degree+1)
+    ranges = [[-1, 1]] * (degree+1)
     return Parameters(defaults, ranges, names=make_polynomial_parameter_names(degree))
 
+
 def make_polynomial_transforms(max_degree):
-    curried_power_transforms = [lambda n: lambda x: np.power(x,n) for _ in range(2,max_degree+1)]
+    curried_power_transforms = [
+        lambda n: lambda x: np.power(x, n) for _ in range(2, max_degree+1)]
     transforms = [curried_power_transform(n)
-                              for curried_power_transform,n
-                                  in zip(curried_power_transforms,range(2,max_degree+1))
-                 ]
+                  for curried_power_transform, n
+                  in zip(curried_power_transforms, range(2, max_degree+1))
+                  ]
     return transforms
 
-def make_polynomial_parameters(max_degree,rnge=1):
-    return make_default_parameters(max_degree+1,rnge=rnge,
-                                 names=make_polynomial_parameter_names(max_degree))
+
+def make_polynomial_parameters(max_degree, rnge=1):
+    parameter_names = make_polynomial_parameter_names(max_degree)
+    return make_default_parameters(max_degree+1, rnge=rnge,
+                                   names=parameter_names)
+
 
 def make_polynomial_parameter_names(max_degree):
     return ['x^'+str(n) for n in range(max_degree+1)]
 
+
 def make_linear_parameters():
     return make_polynomial_parameters(1)
+
 
 def make_linearized_parameters(transforms):
     return make_default_parameters(len(transforms)+2)
 
+
 def make_trig_transform(f):
     return lambda theta, x: f(theta*x)
 
-def make_nonlinear_parameters(default, range_tuple):
-    return Parameters(default,range_tuple,['theta'])
+
+# def make_nonlinear_parameters(default, range_tuple):
+#     return Parameters(default, range_tuple, ['theta'])
+
 
 def random_weights(d=1):
-    return np.random.standard_normal(size=(d,1))
+    return np.random.standard_normal(size=(d, 1))
 
-def plot_model(x,y):
+
+def plot_model(x, y):
     plt.figure()
     plt.plot(np.squeeze(x), np.squeeze(y), linewidth=4)
 
-def setup_x(N, x_mode='linspace', x_range=[-2,2]):
+
+def setup_x(N, x_mode='linspace', x_range=[-2, 2]):
     if x_mode == 'uniform':
-        x = uniform_inputs(x_range[0],x_range[1],N)
+        x = uniform_inputs(x_range[0], x_range[1], N)
     elif x_mode == 'gauss':
         xWidth = x_range[1] - x_range[0]
         mu = (x_range[1] + x_range[0])/2
         sd = xWidth/3
-        x = gauss_inputs(mu,sd,N)
+        x = gauss_inputs(mu, sd, N)
     elif x_mode == 'linspace':
-        x = linspace_inputs(x_range[0],x_range[1],N)
+        x = linspace_inputs(x_range[0], x_range[1], N)
     else:
         print("mode unrecognized, defaulting to linspace")
-        x = linspace_inputs(-1,1,N)
+        x = linspace_inputs(-1, 1, N)
 
     return x
 
+
 def random_linear_model(noise_level, x_mode='linspace', N=1000):
     if x_mode == 'uniform':
-        x = uniform_inputs(-1,1,N)
+        x = uniform_inputs(-1, 1, N)
     elif x_mode == 'gauss':
-        x = gauss_inputs(0,1,N)
+        x = gauss_inputs(0, 1, N)
     elif x_mode == 'linspace':
-        x = linspace_inputs(-1,1,N)
+        x = linspace_inputs(-1, 1, N)
     else:
         print("mode unrecognized, defaulting to linspace")
-        x = linspace_inputs(-1,1,N)
+        x = linspace_inputs(-1, 1, N)
 
     all_ones = np.ones(N)
-    regressors = np.vstack([x,all_ones])
+    regressors = np.vstack([x, all_ones])
 
     linear_weights = random_weights(2)
 
-    epsilon = noise_level*np.random.standard_normal(size=(1,N))
+    epsilon = noise_level * np.random.standard_normal(size=(1, N))
 
-    linear_y = np.dot(linear_weights.T,regressors) + epsilon
+    linear_y = np.dot(linear_weights.T, regressors) + epsilon
 
-    linear_model_dataframe = pd.DataFrame.from_dict({'x':np.squeeze(x),
-                                                     'y':np.squeeze(linear_y)})
+    linear_model_dataframe = pd.DataFrame.from_dict({'x': np.squeeze(x),
+                                                     'y': np.squeeze(linear_y)})
 
     return linear_model_dataframe
 
-def random_linearized_model(noise_level, max_degree, x_mode='linspace', x_range=[-1,1], N=1000):
+
+def random_linearized_model(noise_level, max_degree,
+                            x_mode='linspace', x_range=[-1, 1], N=1000):
 
     x = setup_x(N, x_mode=x_mode, x_range=x_range)
 
     all_ones = np.ones(N)
 
-    poly_regressors = [np.power(x,n) for n in range(2,max_degree+1)]
+    poly_regressors = [np.power(x, n) for n in range(2, max_degree+1)]
 
-    regressors = np.vstack([x,all_ones]+poly_regressors)
+    regressors = np.vstack([x, all_ones] + poly_regressors)
 
-    weights = random_weights(max_degree+1)
+    weights = random_weights(max_degree + 1)
 
-    epsilon = noise_level*np.random.standard_normal(size=(1,N))
+    epsilon = noise_level * np.random.standard_normal(size=(1, N))
 
-    linear_y = np.dot(weights.T,regressors) + epsilon
+    linear_y = np.dot(weights.T, regressors) + epsilon
 
-    linearized_model_dataframe = pd.DataFrame.from_dict({'x':np.squeeze(x),
-                                                         'y':np.squeeze(linear_y)})
+    linearized_model_dataframe = pd.DataFrame.from_dict({'x': np.squeeze(x),
+                                                         'y': np.squeeze(linear_y)})
 
     return linearized_model_dataframe
 
+
 def random_nonlinear_model(noise_level, function,
-                       x_mode='linspace', N=1000,
-                       x_range = [-2,2],
-                      theta_range=[-1,1]):
+                           x_mode='linspace', N=1000,
+                           x_range=[-2, 2],
+                           theta_range=[-1, 1]):
 
     x = setup_x(N, x_mode=x_mode, x_range=x_range)
 
     theta = setup_theta(theta_range)
 
-    epsilon = noise_level*np.random.standard_normal(size=(1,N))
+    epsilon = noise_level * np.random.standard_normal(size=(1, N))
 
-    nonlinear_y = function(theta,x) + epsilon
+    nonlinear_y = function(theta, x) + epsilon
 
-    nonlinear_model_dataframe = pd.DataFrame.from_dict({'x':np.squeeze(x),
-                                                      'y':np.squeeze(nonlinear_y)})
+    nonlinear_model_dataframe = pd.DataFrame.from_dict({'x': np.squeeze(x),
+                                                        'y': np.squeeze(nonlinear_y)})
 
     return nonlinear_model_dataframe
 
+
 def uniform_inputs(mn, mx, N):
-    return np.random.uniform(mn, mx, size=(1,N))
+    return np.random.uniform(mn, mx, size=(1, N))
+
 
 def gauss_inputs(mn, sd, N):
-    return mn+sd*np.random.standard_normal(size=(1,N))
+    return mn + sd * np.random.standard_normal(size=(1, N))
+
 
 def linspace_inputs(mn, mx, N):
     return np.linspace(mn, mx, N)
+
 
 def make_nonlinear_transform(transform, theta_first=True):
     if theta_first:
@@ -350,38 +377,45 @@ def make_nonlinear_transform(transform, theta_first=True):
     else:
         return lambda theta, x: transform(x, theta)
 
+
 def make_power_transform():
     return make_nonlinear_transform(np.power, theta_first=False)
+
 
 def make_LN_transform(f):
     """linear-nonlinear transforms"""
     return lambda theta, x: f(theta*x)
 
+
 def make_nonlinear_parameters(default, range_tuple):
     return Parameters([default], [range_tuple], ['theta'])
 
-def make_rectlin_transform():
-    return lambda theta,x: np.where(x>theta, x-theta, 0)
 
-def setup_trig(trig_function, theta_range=[-5,5]):
+def make_rectlin_transform():
+    return lambda theta, x: np.where(x > theta, x - theta, 0)
+
+
+def setup_trig(trig_function, theta_range=[-5, 5]):
     input_values = np.linspace(-10, 10, 200)
 
-    parameters = make_nonlinear_parameters(1,theta_range)
+    parameters = make_nonlinear_parameters(1, theta_range)
 
     transform = make_LN_transform(trig_function)
 
-    return input_values,parameters,transform
+    return input_values, parameters, transform
+
 
 def setup_power(max_degree):
-    input_values = np.linspace(0,10,200)
+    input_values = np.linspace(0, 10, 200)
 
-    parameters = make_nonlinear_parameters(1,[0,max_degree])
+    parameters = make_nonlinear_parameters(1, [0, max_degree])
 
     transform = make_power_transform()
 
-    return input_values,parameters,transform
+    return input_values, parameters, transform
 
-def setup_LN(f, input_range, theta_range=[-1,1]):
+
+def setup_LN(f, input_range, theta_range=[-1, 1]):
     input_values = np.linspace(*input_range, num=200)
 
     parameters = make_nonlinear_parameters(0, theta_range)
@@ -390,7 +424,8 @@ def setup_LN(f, input_range, theta_range=[-1,1]):
 
     return input_values, parameters, transform
 
-def setup_rectlin(theta_range=[-10,10]):
+
+def setup_rectlin(theta_range=[-10, 10]):
 
     transform = make_rectlin_transform()
 
@@ -399,6 +434,7 @@ def setup_rectlin(theta_range=[-10,10]):
     parameters = make_nonlinear_parameters(0, theta_range)
 
     return input_values, parameters, transform
+
 
 def setup_theta(theta_range):
     theta_width = theta_range[1] - theta_range[0]
