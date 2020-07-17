@@ -1,16 +1,13 @@
-import numpy as np
-
 import inspect
 import math
 
-import pandas as pd
-
+import autograd.numpy as np
 from ipywidgets import interact
-
 import ipywidgets as widgets
-
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D # noqa
+import pandas as pd
+import wandb
 
 
 class Model(object):
@@ -18,11 +15,17 @@ class Model(object):
     Implements plotting and interactive components
     and interface with Parameters object."""
 
-    def __init__(self, input_values, model_inputs, parameters, funk):
-        self.model_inputs = np.atleast_2d(model_inputs)
+    def __init__(self, input_values, model_inputs, parameters, funk,
+                 use_wandb=False, entity=None, project=None, wandb_path="./wandb"):
         self.input_values = input_values
+        self.model_inputs = np.atleast_2d(model_inputs)
         self.parameters = parameters
         self.funk = funk
+        self.use_wandb = use_wandb
+
+        if self.use_wandb:
+            self.setup_wandb(entity, project, wandb_path)
+
         self.plotted = False
         self.has_data = False
         self.show_MSE = False
@@ -57,14 +60,22 @@ class Model(object):
             frame = inspect.currentframe()
             args, _, _, values = inspect.getargvalues(frame)
             kwargs = values['kwargs']
+
             for parameter in kwargs.keys():
                 self.parameters.dict[parameter] = kwargs[parameter]
+
             self.parameters.update()
             self.plot()
 
+            MSE = self.compute_MSE()
             if self.show_MSE:
-                MSE = self.compute_MSE()
                 print("MSE:\t"+str(MSE))
+
+            if self.use_wandb:
+                log_dict = {"MSE": MSE}
+                log_dict.update(self.parameters.dict)
+                self.log_wandb(log_dict)
+
             return
 
         return
@@ -89,6 +100,15 @@ class Model(object):
         MSE = np.mean(squared_errors)
         return MSE
 
+    def setup_wandb(self, entity, project, wandb_path):
+        wandb.init(entity=entity, project=project, dir=wandb_path, anonymous="allow")
+
+    def log_wandb(self, log_dict):
+        wandb.log(log_dict)
+
+    def __delete__(self):
+        wandb.join()
+
 
 class LinearModel(Model):
     """A linear model is a model whose transform is
@@ -96,7 +116,7 @@ class LinearModel(Model):
     Technically really an affine model, as LinearModel.transform_inputs
     adds a bias term."""
 
-    def __init__(self, input_values, parameters, model_inputs=None):
+    def __init__(self, input_values, parameters, model_inputs=None, **kwargs):
 
         if model_inputs is None:
             model_inputs = self.transform_inputs(input_values)
@@ -106,7 +126,7 @@ class LinearModel(Model):
         def funk(inputs):
             return np.dot(self.parameters.values, inputs)
 
-        Model.__init__(self, input_values, model_inputs, parameters, funk)
+        Model.__init__(self, input_values, model_inputs, parameters, funk, **kwargs)
 
     def transform_inputs(self, input_values):
         model_inputs = [[1]*input_values.shape[0], input_values]
@@ -118,14 +138,15 @@ class LinearizedModel(LinearModel):
     inputs that have been transformed according to
     1 or more transforms."""
 
-    def __init__(self, transforms, input_values, parameters):
+    def __init__(self, transforms, input_values, parameters, **kwargs):
 
         self.transforms = [lambda x: np.power(x, 0),
                            lambda x: x] + transforms
 
         model_inputs = self.transform_inputs(input_values)
 
-        LinearModel.__init__(self, input_values, parameters, model_inputs=model_inputs)
+        LinearModel.__init__(
+            self, input_values, parameters, model_inputs=model_inputs, **kwargs)
 
     def transform_inputs(self, input_values):
         transformed_inputs = []
@@ -141,12 +162,12 @@ class NonlinearModel(Model):
     are related to its inputs by transforms that
     depend on its parameters."""
 
-    def __init__(self, input_values, parameters, transform):
+    def __init__(self, input_values, parameters, transform, **kwargs):
 
         def funk(inputs):
             return transform(self.parameters.values, inputs)
 
-        Model.__init__(self, input_values, input_values, parameters, funk)
+        Model.__init__(self, input_values, input_values, parameters, funk, **kwargs)
 
     def transform_inputs(self, input_values):
         return input_values
