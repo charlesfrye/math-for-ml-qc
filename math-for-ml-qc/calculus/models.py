@@ -10,6 +10,9 @@ import pandas as pd
 import wandb
 
 
+wandb.jupyter.logger.setLevel("CRITICAL")
+
+
 class Model(object):
     """Base class for the other *Model classes.
     Implements plotting and interactive components
@@ -233,6 +236,12 @@ class Parameters(object):
 ###
 # Helper Functions
 ###
+
+
+def cleanup(model):
+    for widget in model.parameters._widgets:
+        widget.close()
+    plt.close(model.fig)
 
 
 def make_default_parameters(number, rnge=1, names=None):
