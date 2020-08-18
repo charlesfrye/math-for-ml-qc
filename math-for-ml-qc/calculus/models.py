@@ -1,6 +1,8 @@
 import inspect
 import math
+import time
 
+import autograd
 import autograd.numpy as np
 from ipywidgets import interact
 import ipywidgets as widgets
@@ -33,11 +35,14 @@ class Model(object):
         self.has_data = False
         self.show_MSE = False
 
+        self._interactor = None
+
     def plot(self):
         if not self.plotted:
             self.initialize_plot()
         else:
             self.artist.set_data(self.input_values, self.outputs)
+            self.fig.canvas.draw()
         return
 
     @property
@@ -81,7 +86,38 @@ class Model(object):
 
             return
 
+        self._interactor = make
+
         return
+
+    def run_gd(self, n=25, lr=0.1, delta_t=0.1):
+        if self._interactor is None:
+            self.make_interactive
+
+        def loss(parameters):
+            outputs = self.funk(np.array(self.data_inputs), parameters)
+            squared_errors = np.square(np.array(self.correct_outputs) - outputs)
+            MSE = np.mean(squared_errors)
+            return MSE
+
+        loss_grad = autograd.elementwise_grad(loss)
+        self._loss = loss
+        self._loss_grad = loss_grad
+
+        for _ in range(n):
+            gradient = loss_grad(self.parameters.values)
+            if gradient.ndim >= 2:
+                gradient = np.squeeze(gradient)
+            update_dict = self.make_grad_update_dict(np.atleast_1d(gradient), lr)
+            self._interactor(**update_dict)
+            time.sleep(delta_t)
+
+    def make_grad_update_dict(self, gradient, lr=0.1):
+        update_dict = {}
+        for ii, key in enumerate(self.parameters.dict):
+            update_dict[key] = self.parameters.dict[key] - lr * gradient[ii]
+
+        return update_dict
 
     def set_data(self, xs, ys):
         self.data_inputs = self.transform_inputs(xs)
@@ -126,8 +162,10 @@ class LinearModel(Model):
         else:
             model_inputs = model_inputs
 
-        def funk(inputs):
-            return np.dot(self.parameters.values, inputs)
+        def funk(inputs, parameters=None):
+            if parameters is None:
+                parameters = self.parameters.values
+            return np.dot(parameters, inputs)
 
         Model.__init__(self, input_values, model_inputs, parameters, funk, **kwargs)
 
@@ -167,8 +205,10 @@ class NonlinearModel(Model):
 
     def __init__(self, input_values, parameters, transform, **kwargs):
 
-        def funk(inputs):
-            return transform(self.parameters.values, inputs)
+        def funk(inputs, parameters=None):
+            if parameters is None:
+                parameters = self.parameters.values
+            return transform(parameters, inputs)
 
         Model.__init__(self, input_values, input_values, parameters, funk, **kwargs)
 
