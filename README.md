@@ -44,7 +44,7 @@ the best option is to use
 one of the virtualization technologies
 on which Binder is based.
 
-After following the installation instructions,
+After following the installation instructions for Docker,
 build the container with the command
 ```
 docker build -t math-for-ml-qc .
